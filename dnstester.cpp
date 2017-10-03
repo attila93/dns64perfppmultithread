@@ -43,7 +43,7 @@ DnsQuery::DnsQuery()
     : received_{false}, answered_{false}, rtt_{std::chrono::nanoseconds{-1}} {}
 
 DnsTester::DnsTester(
-    struct in6_addr server_addr, uint16_t port, uint32_t ip, uint8_t netmask,
+    struct in_addr server_addr, uint16_t port, uint32_t ip, uint8_t netmask,
     uint32_t num_req, uint32_t num_burst, uint32_t num_thread,
     uint32_t thread_id,
     const std::chrono::time_point<std::chrono::high_resolution_clock>
@@ -71,7 +71,7 @@ DnsTester::DnsTester(
   }
   sock_ = Socket{sockfd};
   /* Bind socket */
-  struct sockaddr_in6 local_addr;
+  struct sockaddr_in local_addr;
   memset(&local_addr, 0x00, sizeof(local_addr));
   local_addr.sin_family = AF_INET;  // IPv6
   local_addr.sin_addr = inaddr_any; // To any valid IP address
@@ -176,7 +176,7 @@ void DnsTester::start() {
                 (size_t)(num_req_ / num_burst_)}};
   timer_->start();
   /* Receiving answers */
-  struct sockaddr_in6 sender;
+  struct sockaddr_in sender;
   socklen_t sender_len;
   ssize_t recvlen;
   uint8_t answer_data[UDP_MAX_LEN];
@@ -206,7 +206,7 @@ void DnsTester::start() {
       /* Test whether the answer came from the DUT */
       if (memcmp(reinterpret_cast<const void *>(&sender.sin_addr),
                  reinterpret_cast<const void *>(&server_.sin_addr),
-                 sizeof(struct in6_addr)) != 0 ||
+                 sizeof(struct in_addr)) != 0 ||
           sender.sin_port != server_.sin_port) {
         char sender_text[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, reinterpret_cast<const void *>(&sender.sin_addr),
@@ -332,7 +332,7 @@ void DnsTesterAggregator::write(const char *filename) {
   /* Convert server address to string */
   if (inet_ntop(
           AF_INET,
-          reinterpret_cast<const void *>(&first_tester->server_.sin6_addr),
+          reinterpret_cast<const void *>(&first_tester->server_.sin_addr),
           server, sizeof(server)) == NULL) {
     std::stringstream ss;
     ss << "Bad server address: " << strerror(errno);
@@ -346,7 +346,7 @@ void DnsTesterAggregator::write(const char *filename) {
   /* Write header */
   fprintf(fp, "%s\n", "dns64perf++ test parameters");
   fprintf(fp, "server: %s\n", server);
-  fprintf(fp, "port: %hu\n", ntohs(first_tester->server_.sin6_port));
+  fprintf(fp, "port: %hu\n", ntohs(first_tester->server_.sin_port));
   fprintf(fp, "number of requests: %u\n",
           first_tester->num_req_ * first_tester->num_thread_);
   fprintf(fp, "burst size: %u\n", first_tester->num_burst_);
