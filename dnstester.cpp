@@ -59,12 +59,12 @@ DnsTester::DnsTester(
   num_offset_ = thread_id_ * num_req_;
   /* Fill server sockaddr structure */
   memset(&server_, 0x00, sizeof(server_));
-  server_.sin6_family = AF_INET6;
+  server_.sin6_family = AF_INET;
   server_.sin6_addr = server_addr;
   server_.sin6_port = htons(port);
   /* Create socket */
   int sockfd;
-  if ((sockfd = ::socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+  if ((sockfd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
     std::stringstream ss;
     ss << "Cannot create socket: " << strerror(errno);
     throw TestException{ss.str()};
@@ -73,8 +73,8 @@ DnsTester::DnsTester(
   /* Bind socket */
   struct sockaddr_in6 local_addr;
   memset(&local_addr, 0x00, sizeof(local_addr));
-  local_addr.sin6_family = AF_INET6;  // IPv6
-  local_addr.sin6_addr = in6addr_any; // To any valid IP address
+  local_addr.sin6_family = AF_INET;  // IPv6
+  local_addr.sin6_addr = inaddr_any; // To any valid IP address
   local_addr.sin6_port = htons(0);    // Get a random port
   if (::bind(sock_, reinterpret_cast<struct sockaddr *>(&local_addr),
              sizeof(local_addr)) == -1) {
@@ -208,8 +208,8 @@ void DnsTester::start() {
                  reinterpret_cast<const void *>(&server_.sin6_addr),
                  sizeof(struct in6_addr)) != 0 ||
           sender.sin6_port != server_.sin6_port) {
-        char sender_text[INET6_ADDRSTRLEN];
-        inet_ntop(AF_INET6, reinterpret_cast<const void *>(&sender.sin6_addr),
+        char sender_text[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, reinterpret_cast<const void *>(&sender.sin6_addr),
                   sender_text, sizeof(sender_text));
         std::stringstream ss;
         ss << "Received packet from other host than the DUT: [" << sender_text
@@ -328,10 +328,10 @@ void DnsTesterAggregator::display() {
 
 void DnsTesterAggregator::write(const char *filename) {
   const auto &first_tester = dns_testers_[0];
-  char server[INET6_ADDRSTRLEN];
+  char server[INET_ADDRSTRLEN];
   /* Convert server address to string */
   if (inet_ntop(
-          AF_INET6,
+          AF_INET,
           reinterpret_cast<const void *>(&first_tester->server_.sin6_addr),
           server, sizeof(server)) == NULL) {
     std::stringstream ss;
