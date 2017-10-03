@@ -74,7 +74,7 @@ DnsTester::DnsTester(
   struct sockaddr_in local_addr;
   memset(&local_addr, 0x00, sizeof(local_addr));
   local_addr.sin_family = AF_INET;  // IPv6
-  local_addr.sin_addr = inaddr_any; // To any valid IP address
+  local_addr.sin_addr.s_addr = htonl (INADDR_ANY); // To any valid IP address
   local_addr.sin_port = htons(0);    // Get a random port
   if (::bind(sock_, reinterpret_cast<struct sockaddr *>(&local_addr),
              sizeof(local_addr)) == -1) {
