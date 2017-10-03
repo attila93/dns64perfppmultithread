@@ -59,9 +59,9 @@ DnsTester::DnsTester(
   num_offset_ = thread_id_ * num_req_;
   /* Fill server sockaddr structure */
   memset(&server_, 0x00, sizeof(server_));
-  server_.sin6_family = AF_INET;
-  server_.sin6_addr = server_addr;
-  server_.sin6_port = htons(port);
+  server_.sin_family = AF_INET;
+  server_.sin_addr = server_addr;
+  server_.sin_port = htons(port);
   /* Create socket */
   int sockfd;
   if ((sockfd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
@@ -73,9 +73,9 @@ DnsTester::DnsTester(
   /* Bind socket */
   struct sockaddr_in6 local_addr;
   memset(&local_addr, 0x00, sizeof(local_addr));
-  local_addr.sin6_family = AF_INET;  // IPv6
-  local_addr.sin6_addr = inaddr_any; // To any valid IP address
-  local_addr.sin6_port = htons(0);    // Get a random port
+  local_addr.sin_family = AF_INET;  // IPv6
+  local_addr.sin_addr = inaddr_any; // To any valid IP address
+  local_addr.sin_port = htons(0);    // Get a random port
   if (::bind(sock_, reinterpret_cast<struct sockaddr *>(&local_addr),
              sizeof(local_addr)) == -1) {
     std::stringstream ss;
@@ -204,16 +204,16 @@ void DnsTester::start() {
       std::chrono::high_resolution_clock::time_point time_received =
           std::chrono::high_resolution_clock::now();
       /* Test whether the answer came from the DUT */
-      if (memcmp(reinterpret_cast<const void *>(&sender.sin6_addr),
-                 reinterpret_cast<const void *>(&server_.sin6_addr),
+      if (memcmp(reinterpret_cast<const void *>(&sender.sin_addr),
+                 reinterpret_cast<const void *>(&server_.sin_addr),
                  sizeof(struct in6_addr)) != 0 ||
-          sender.sin6_port != server_.sin6_port) {
+          sender.sin_port != server_.sin_port) {
         char sender_text[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, reinterpret_cast<const void *>(&sender.sin6_addr),
+        inet_ntop(AF_INET, reinterpret_cast<const void *>(&sender.sin_addr),
                   sender_text, sizeof(sender_text));
         std::stringstream ss;
         ss << "Received packet from other host than the DUT: [" << sender_text
-           << "]:" << ntohs(sender.sin6_port);
+           << "]:" << ntohs(sender.sin_port);
         throw TestException{ss.str()};
       }
       /* Parse the answer */
